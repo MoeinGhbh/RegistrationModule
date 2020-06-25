@@ -21,20 +21,23 @@ class CreateTable():
         con.commit()
 
 class add_user():
+    connect = Connection()
+    con=connect.sql_connection()
+
     def __init__(self,email,password):
         self.email=email
         self.password=password
         
-    def insert_value(self,con):
+    def insert_value(self):
         # Insert a row of data
         try:
-            con.execute(f'INSERT INTO users  (email,password,active,lock)' + \
+            add_user.con.execute(f'INSERT INTO users  (email,password,active,lock)' + \
                                 f'VALUES ({self.email},{self.password},0,0)')
             return True
         except Error:
             return Error
         # # Save (commit) the changes
-        con.commit()
+        add_user.con.commit()
 
 class user_update():
     pass
