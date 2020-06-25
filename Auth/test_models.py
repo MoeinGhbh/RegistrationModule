@@ -12,7 +12,8 @@ class TestClass:
         return connect.sql_connection()
 
     def test_createTable(self,sql_connection):
-        pass
+        crttbl =  CreateTable()
+        assert crttbl.Create_table(sql_connection) == True
 
     def test_add_user(self,sql_connection):
         user = add_user(TestClass.email,TestClass.password)
