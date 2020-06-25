@@ -30,12 +30,12 @@ class add_user():
         
     def insert_value(self):
         # Insert a row of data
-        # try:
-        add_user.con.execute(f'INSERT INTO users  (email,password,active,lock) VALUES (?,?,?,?)',(self.email,self.password,0,0))
-        #     return True
-        # except Error:
-        #     return Error
-        # # Save (commit) the changes
+        try:
+            add_user.con.execute(f'INSERT INTO users  (email,password,active,lock) VALUES (?,?,?,?)',(self.email,self.password,0,0))
+            return True
+        except Error:
+            return Error
+        # Save (commit) the changes
         add_user.con.commit()
 
 class user_update():
