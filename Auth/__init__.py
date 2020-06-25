@@ -1,8 +1,14 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from Auth.models import CreateTable,Connection
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI']='sqlite3:///../albeton.db'
-db = SQLAlchemy(app)
+
+
+connect= Connection()
+con=connect.sql_connection()
+crt_table= CreateTable()
+crt_table.Create_table(con)
+
 
 from Auth import routs
+
