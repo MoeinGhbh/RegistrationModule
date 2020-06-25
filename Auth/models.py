@@ -17,7 +17,11 @@ class Connection():
 class CreateTable():
     def Create_table(self,con):
         cursorObj = con.cursor()
-        cursorObj.execute("CREATE TABLE if not exists users(id INTEGER PRIMARY KEY, email string(15), password string(15), active int, Lock int)")
+        try:
+            cursorObj.execute("CREATE TABLE if not exists users(id INTEGER PRIMARY KEY, email string(15), password string(15), active int, Lock int)")
+            return True
+        except Error:
+            return Error
         con.commit()
 
 class add_user():
