@@ -17,7 +17,7 @@ class Connection():
 class CreateTable():
     def Create_table(self,con):
         cursorObj = con.cursor()
-        cursorObj.execute("CREATE TABLE if not exists users(id INTEGER PRIMARY KEY, email string(30), password string(15), active int, Lock int)")
+        cursorObj.execute("CREATE TABLE if not exists users(id INTEGER PRIMARY KEY, email string(15), password string(15), active int, Lock int)")
         con.commit()
 
 class add_user():
@@ -30,12 +30,11 @@ class add_user():
         
     def insert_value(self):
         # Insert a row of data
-        try:
-            add_user.con.execute(f'INSERT INTO users  (email,password,active,lock)' + \
-                                f'VALUES ({self.email},{self.password},0,0)')
-            return True
-        except Error:
-            return Error
+        # try:
+        add_user.con.execute(f'INSERT INTO users  (email,password,active,lock) VALUES (?,?,?,?)',(self.email,self.password,0,0))
+        #     return True
+        # except Error:
+        #     return Error
         # # Save (commit) the changes
         add_user.con.commit()
 
