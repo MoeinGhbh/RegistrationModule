@@ -5,11 +5,11 @@ import os
 class Connection():
     # create a default path to connect to and create (if necessary) a database
     # called 'database.sqlite3' in the same directory as this script
-    DEFAULT_PATH = os.path.join(os.path.dirname(__file__), 'albeton.sqlite3')
+    DEFAULT_PATH = os.path.join(os.path.dirname(__file__), '../albeton.sqlite3')
     print(DEFAULT_PATH)
     def sql_connection(self,db_path=DEFAULT_PATH):
         try:
-            con = sqlite3.connect(db_path)
+            con = sqlite3.connect(db_path, check_same_thread=False)
             return con
         except Error:
             print(Error)
@@ -18,7 +18,12 @@ class CreateTable():
     def Create_table(self,con):
         cursorObj = con.cursor()
         try:
-            cursorObj.execute("CREATE TABLE if not exists users(id INTEGER PRIMARY KEY, email string(15), password string(15), active int, Lock int)")
+            cursorObj.execute(f'CREATE TABLE if not exists users ' + \
+                              f'(id       INTEGER PRIMARY KEY,'    + \
+                              f' email    string(50) UNIQUE,'      + \
+                              f' password string(50) UNIQUE,'      + \
+                              f' active   int,'                    + \
+                              f' Lock     int)')
             return True
         except Error:
             return Error
@@ -35,7 +40,10 @@ class add_user():
     def insert_value(self):
         # Insert a row of data
         try:
-            add_user.con.execute(f'INSERT INTO users  (email,password,active,lock) VALUES (?,?,?,?)',(self.email,self.password,0,0))
+            add_user.con.execute(f'INSERT INTO users' + \
+                                 f'(email,password,active,lock)' + \
+                                 f'VALUES (?,?,?,?)'
+                                 ,(self.email,self.password,0,0))
             return True
         except Error:
             return Error
