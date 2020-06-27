@@ -28,7 +28,7 @@ class CreateTable():
     con=connect.sql_connection()
 
     @staticmethod
-    def Create_table():
+    def create_table():
         cursorObj = CreateTable.con.cursor()
         try:
             cursorObj.execute(f'CREATE TABLE if not exists users ' + \
@@ -43,7 +43,7 @@ class CreateTable():
             return Error
         CreateTable.con.commit()
 
-class add_user():
+class AddUser():
     connect = Connection()
     con=connect.sql_connection()
 
@@ -54,17 +54,15 @@ class add_user():
     def insert_value(self):
         # Insert a row of data
         try:
-            add_user.con.execute(f' INSERT INTO users ' + \
+            AddUser.con.execute(f' INSERT INTO users ' + \
                                  f' (email,password,active,lock,incorrectPass) ' + \
                                  f' VALUES (?,?,?,?,?) '
                                  ,(self.email,self.password,0,0,0))
                                  # Save (commit) the changes
-            add_user.con.commit()
+            AddUser.con.commit()
             return True
-        except Error:
-            return Error
-        
-        return True
+        except:
+            return False
 
 class Authentication():
     connect = Connection()
@@ -75,7 +73,7 @@ class Authentication():
         self.email=email
         self.password= password
 
-    def Check_user_password(self):
+    def check_user_password(self):
         cursor = self.con.cursor()
         # select a row from data
         try:
@@ -85,48 +83,47 @@ class Authentication():
             cursor.close()
 
             if len(rows)>0:
-                if Authentication.hp.verify_password(rows[0][1],self.password):
+                id = rows[0][0]
+                password = rows[0][2]
+                isactive=int(rows[0][3])
+                islock=int(rows[0][4])
+                incorrectPass=int(rows[0][5])
+                if Authentication.hp.verify_password(password,self.password):
                     print('password is correct')
                     if len(rows)>0 :
-                        
-                        id = rows[0][0]
-                        isactive=int(rows[0][3])
-                        islock=int(rows[0][4])
-                        incorrectPass=int(rows[0][5])
-
                         if isactive==0:
                             return 'Account is not active'
                         elif isactive==1 and islock==0:
                             return True
                         elif isactive==1 and islock==1:
                             return 'Account is Locked'
-                      
                     else:
                         return 'Account is not exist'
                 else:
-                    id = int(rows[0][0])
-                    incorrectPass=int(rows[0][5])
+                    # id = int(rows[0][0])
+                    # incorrectPass=int(rows[0][5])
                     uuip= UserUpdate()
                     uuip.user_incorrectpass(id,incorrectPass)
-                    print('password is not correct')
+                    return 'password is not correct!'
 
         except Error:
             return Error
-
 
 class UserUpdate():
     connect = Connection()
     con=connect.sql_connection()
 
-    def upser_active(self,id,active):
+    def upser_active(self,id):
         cursor = self.con.cursor()
         # select a row from data
-        # try:
-            # cursor.execute(f' upadte users set active=? where id=?',(active,id))
-        print(f' update users set active = 1 where id = 1 ')
-        cursor.execute(f' update users set active = 1 where id = 1 ')
-        # except Error:
-        #     return Error
+        try:
+            cursor.execute(f' update users set active = 1 where id = ? ',(id,))
+            self.con.commit()
+            cursor.close()
+            return True
+        except Error:
+            return Error
+        
     
     def user_lock(self,id,lock):
         cursor = UserUpdate.con.cursor()
@@ -145,7 +142,6 @@ class UserUpdate():
         incorrectPass+=1
         # hhhhhhhhhhhaaaaaaaaaaaaaaaaaaaaaaarrrrrrrrrrrrrdddddddd code
         if incorrectPass>3:
-            print(incorrectPass)
             ss = UserUpdate()
             ss.user_lock(id,1)
         else:
@@ -156,7 +152,7 @@ class UserUpdate():
             except Error:
                 return Error
 
-class user_delete():
+class UserDelete():
     pass
 
 class Close():
