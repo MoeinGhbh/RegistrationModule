@@ -1,6 +1,6 @@
 from flask import render_template, request, Response, jsonify, flash, redirect
 from Auth import app
-from Auth.models import AddUser, Authentication, UserUpdate
+from Auth.models import AddUser, Authentication, UpserActive
 from Auth.sendEmail import SendEmail
 from Auth.HashPassword import HashPassword
 import datetime
@@ -26,8 +26,8 @@ def register_form():
     HP = HashPassword()
     password = HP.hash_password(password)
     # class add user method
-    newUser = AddUser(email, password)
-    result = newUser.insert_value()
+    newUser = AddUser(email, password,0,0,0)
+    result = newUser.insert_user()
     print(result)
     # if registration is successfull then send a activate e-mial
     if result:
@@ -69,8 +69,8 @@ def get_token():
 def active_user():
     request_data = request.get_json()
     id = str(request_data["id"])
-    up = UserUpdate()
-    result = up.upser_active(id)
+    up = UpserActive(id)
+    result = up.user_update()
     if result:
         return 'user successfully active'
     else:
