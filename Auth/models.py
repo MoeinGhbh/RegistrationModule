@@ -2,6 +2,8 @@ from sqlite3 import Error
 import sqlite3
 import os
 from Auth.HashPassword import HashPassword
+import config
+
 
 
 class Singleton(type):
@@ -35,6 +37,7 @@ class Connection(metaclass=Singleton):
         try:
             self.cursor.close()
             self.con.commit()
+            self.con.close()
         except Error:
             return Error
         
@@ -93,7 +96,6 @@ class Authentication():
                 cursor.execute(
                     f' select id,email,password,active,lock,incorrectPass from users where email=?', (self.email,))
                 rows = cursor.fetchall()
-
                 if len(rows) > 0:
                     id = rows[0][0]
                     password = rows[0][2]
@@ -101,23 +103,36 @@ class Authentication():
                     islock = int(rows[0][4])
                     incorrectPass = int(rows[0][5])
 
+                    # class hash function for compare password with password in databse 
                     if Authentication.hp.verify_password(password, self.password):
-                        print('password is correct')
-                        print(rows)
-                        if len(rows) > 0:
-                            if isactive == 0:
-                                return 'Account is not active'
-                            elif isactive == 1 and islock == 0:
-                                return True
-                            elif isactive == 1 and islock == 1:
-                                return 'Account is Locked'
-                        else:
-                            return 'Account is not exist'
-                    else:
-                        uuip = UserIncorrectPass(id, incorrectPass)
-                        uuip.user_update()
-                        return 'password is not correct!'
 
+                        if isactive == 0:
+                            return 'Account is not active'
+                        elif isactive == 1 and islock == 1:
+                            return 'Account is Locked'
+                        elif isactive == 1 and islock == 0:
+                            if incorrectPass>0:
+                                # set incorrect value to zero
+                                uuip = UserIncorrectPass()
+                                uuip.user_update(id, 0)
+                            return True
+                    else:
+                        if islock==1:
+                            return 'Account is Locked'
+                        else:
+                            incorrectPass+=1
+                            # read threshold value from config 
+                            loginـthreshold = config.Errorـthreshold['time']  
+                            if incorrectPass > loginـthreshold:
+                                lock_account = UserLock()
+                                lock_account.user_update(id,1)
+                                return 'Account locked'
+                            else:
+                                uuip = UserIncorrectPass()
+                                uuip.user_update(id, incorrectPass)
+                                return 'Password is not correct!'
+                else:
+                    return 'Account is not exist'
             except Error:
                 return Error
 
@@ -129,56 +144,30 @@ class UserUpdate:
         pass
 
 class UpserActive(UserUpdate):
-    def __init__(self,id):
-        self.id=id
-        
-    def user_update(self):
+    def user_update(self,id,active):
         with Connection() as cursor:
-            # select a row from data
             try:
-                cursor.execute(
-                    f' update users set active = 1 where id = ? ', (self.id,))
+                cursor.execute(f' update users set active = ? where id = ? ', (active,id,))
                 return True
             except Error:
                 return Error
 
 class UserLock(UserUpdate):
-    def __init__(self,id,lock):
-        self.id=id
-        self.lock=lock
-
-    def user_update(self):
+    def user_update(self,id,lock):
         with Connection() as cursor:
-            # select a row from data
             try:
-                cursor.execute(f' update users set lock = ? where id = ? ',(self.lock,self.id))
+                cursor.execute(f' update users set lock = ? where id = ? ',(lock,id))
             except Error:
                 return Error
         
 class UserIncorrectPass(UserUpdate):
-    def __init__(self,id,incorrectPass):
-        self.id=id
-        self.incorrectPass=incorrectPass
-
-    def user_update(self):
+    def user_update(self,id,incorrectPass):
         with Connection() as cursor:
-            # select a row from data
-            self.incorrectPass+=1
-            # hhhhhhhhhhhaaaaaaaaaaaaaaaaaaaaaaarrrrrrrrrrrrrdddddddd code
-            if self.incorrectPass > 3:
-                lock_account = UserLock(self.id,1)
-                lock_account.user_update()
-            else:
-                try:
-                    cursor.execute(f'  UPDATE users set incorrectPass = ? where id = ? ',(self.incorrectPass,self.id))
-                except Error:
-                    return Error
+            try:
+                cursor.execute(f'  UPDATE users set incorrectPass = ? where id = ? ',(incorrectPass,id))
+            except Error:
+                return Error
 
 class UserDelete():
     pass
 
-class Close():
-    def close_connection(self,con):
-        # # We can also close the connection if we are done with it.
-        # # Just be sure any changes have been committed or they will be lost.
-        con.close()
