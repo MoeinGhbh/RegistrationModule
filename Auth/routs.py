@@ -69,7 +69,7 @@ def get_token():
 def active_user():
     request_data = request.get_json()
     id = str(request_data["id"])
-    up = UpserActive(id)
+    up = UpserActive(id,1)
     result = up.user_update()
     if result:
         return 'user successfully active'
