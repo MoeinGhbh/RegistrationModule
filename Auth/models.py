@@ -39,6 +39,7 @@ class Connection(metaclass=Singleton):
             self.cursor.close()
             self.con.commit()
             self.con.close()
+            del self.con
         except Error:
             return Error
 
@@ -77,6 +78,18 @@ class AddUser():
             except:
                 return False
 
+class SelectUser:
+    def __init__(self,emial):
+        self.email=emial
+    def select_user(self,myConnection):
+        with myConnection as cursor:
+            try:
+                cursor.execute(f' select id,email,password,active,lock,incorrectPass from users where email=?', (self.email,))
+                rows = cursor.fetchall()
+                return rows
+            except Error:
+                return Error 
+
 class UserUpdate():
     def __init__(self,column,id,value):
         self.column=column
@@ -92,7 +105,15 @@ class UserUpdate():
                 return Error
 
 class UserDelete():
-    pass
+    def __init__(self,emial):
+        self.email=emial
+    def select_user(self,myConnection):
+        with myConnection as cursor:
+            try:
+                cursor.execute(f' delete from users where email=?', (self.email,))
+                return True
+            except Error:
+                return Error 
 
 class Authentication():
     hp = HashPassword()
@@ -102,18 +123,14 @@ class Authentication():
         self.password = password
 
     def check_user_password(self,myConnection):
-        with myConnection as cursor:
-            # select a row from data
-            try:
-                cursor.execute(
-                    f' select id,email,password,active,lock,incorrectPass from users where email=?', (self.email,))
-                rows = cursor.fetchall()
+                su= SelectUser(self.email)             
+                rows = su.select_user(myConnection)
                 if len(rows) > 0:
-                    id = rows[0][0]
-                    password = rows[0][2]
-                    isactive = int(rows[0][3])
-                    islock = int(rows[0][4])
-                    incorrectPass = int(rows[0][5])
+                    id              =       rows[0][0]
+                    password        =       rows[0][2]
+                    isactive        =   int(rows[0][3])
+                    islock          =   int(rows[0][4])
+                    incorrectPass   =   int(rows[0][5])
 
                     # class hash function for compare password with password in databse 
                     if Authentication.hp.verify_password(password, self.password):
@@ -145,6 +162,5 @@ class Authentication():
                                 return 'Password is not correct!'
                 else:
                     return 'Account is not exist'
-            except Error:
-                return Error
+
 
