@@ -1,20 +1,23 @@
 from flask import render_template, request, Response, jsonify, flash, redirect
-from Auth import app
-from Auth.models import AddUser, Authentication, UpserActive
+from Auth import app,MyConnection
+from Auth.models import Connection, AddUser, Authentication, UserUpdate
 from Auth.sendEmail import SendEmail
 from Auth.HashPassword import HashPassword
 import datetime
 from functools import wraps
 import jwt
-
+import os
 
 app.config["SECRET_KEY"] = 'f6a6ec1916a64e3294f4bf45bf183f81'
+# PATH = os.path.join(os.path.dirname(__file__), '../albeton.sqlite3')
+# MyConnection= Connection()
+# MyConnection._path=PATH
+
 
 
 @app.route('/')
 def home():
     return render_template('home.html')
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_form():
@@ -27,7 +30,7 @@ def register_form():
     password = HP.hash_password(password)
     # class add user method
     newUser = AddUser(email, password,0,0,0)
-    result = newUser.insert_user()
+    result = newUser.insert_user(MyConnection)
     print(result)
     # if registration is successfull then send a activate e-mial
     if result:
@@ -55,7 +58,7 @@ def get_token():
     email = str(request_data["email"])
     password = str(request_data["password"])
     auth = Authentication(email, password)
-    result = auth.check_user_password()
+    result = auth.check_user_password(MyConnection)
     print(result)
     if result == True:
         expiration_date = datetime.datetime.utcnow() + datetime.timedelta(seconds=300)
@@ -69,8 +72,8 @@ def get_token():
 def active_user():
     request_data = request.get_json()
     id = str(request_data["id"])
-    up = UpserActive(id,1)
-    result = up.user_update()
+    up = UserUpdate('active',id,1)
+    result = up.user_update(MyConnection)
     if result:
         return 'user successfully active'
     else:
