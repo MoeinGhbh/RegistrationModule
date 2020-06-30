@@ -9,11 +9,6 @@ import jwt
 import os
 
 app.config["SECRET_KEY"] = 'f6a6ec1916a64e3294f4bf45bf183f81'
-# PATH = os.path.join(os.path.dirname(__file__), '../albeton.sqlite3')
-# MyConnection= Connection()
-# MyConnection._path=PATH
-
-
 
 @app.route('/')
 def home():

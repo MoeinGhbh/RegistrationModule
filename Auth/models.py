@@ -5,7 +5,7 @@ from Auth.HashPassword import HashPassword
 import config
 import gc
 
-
+# singleton design pattern for make one instantiate from class
 class Singleton(type):
     _instance = None
 
@@ -14,7 +14,9 @@ class Singleton(type):
             self._instance = super().__call__()
         return self._instance
 
-
+''' connection class make context manager for connecting to database and 
+    mangement of open / close and commit
+'''
 class Connection(metaclass=Singleton):
     def __init__(self):
         self.con = None
@@ -49,7 +51,7 @@ class Connection(metaclass=Singleton):
         except Error:
             return Error
 
-
+# create table from Users
 class CreateTable:
     @staticmethod
     def create_table(myconnection):
@@ -66,7 +68,7 @@ class CreateTable:
             except Error:
                 return Error
 
-
+# insert user with none active setuation
 class AddUser():
     def __init__(self, email, password, active, lock, incorrectPass):
         self.email = email
@@ -90,7 +92,7 @@ class AddUser():
             except Error:
                 return Error
 
-
+# select class for retreving user from database
 class SelectUser:
     def __init__(self, emial):
         self.email = emial
@@ -104,7 +106,12 @@ class SelectUser:
             except Error:
                 return Error
 
-
+'''
+update 3 diffrenct columns of database
+active: for makeing active user
+lock:   for lock user after pass threshold which set on config file
+incorrectpass: for counting wrong password
+'''
 class UserUpdate():
     def __init__(self, column, id, value):
         self.column = column
@@ -119,7 +126,7 @@ class UserUpdate():
             except Error:
                 return Error
 
-
+# delete user
 class UserDelete():
     def __init__(self, emial):
         self.email = emial
@@ -134,6 +141,7 @@ class UserDelete():
 
 
 class Authentication():
+    # use this class to hash password
     hp = HashPassword()
 
     def __init__(self, email, password):

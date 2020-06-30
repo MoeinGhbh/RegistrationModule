@@ -1,25 +1,37 @@
+# Authentication Module
 
-# Registration Module
+This task has tow part
 
-Many websites allow their visitors to create a customized personal account. This is
-usually done through a web interface that allows new users to register by completing a
-registration form.
-This task includes designing and implementing a backend that possesses the functions
-outlined below. The necessary data should be stored in an SQL database. Please
-develop a suitable schema and create a Python module that provides the functionality
-described below. For this task, it is not expected of you to connect a website (or even
-to write HTML for the site), to maintain web sessions via cookies or the like.
+* Registration
+* Authentication
+
+all this functionality implement in models module 
+and for unittest use of pytest that run test_models.py
 
 ## Registration
-
-A new user can register with their email address and password of choice. Once the
-registration process is complete, the user will receive a confirmation email. This email
-will contain a link that needs to be clicked on in order to activate the account. Note:
-Sending an actual email or routing the request when the user clicks on the activation
-link is not part of the task.
+A new user can register with their email address and password of choice then call the Models module and insert it to the User table with the hash password.
+Once the registration process is complete, the user will receive a confirmation email. This email will contain a link that needs to be clicked on in order to activate the account. 
+this linked consists of the ID of a client that calls the activate method, then the status will change.
 
 ## Authentication
+Users enter their email address and password to log in and faced to different status:
+    1- Not register
+    2- Not active
+    3- Active
+    4- Lock
+The account will be locked automatically for a certain period of time which defined in the config file, after repeated attempts at logging in with an incorrect password.
 
-Users enter their email address and password to log in. The account will be locked
-automatically for a certain period of time after repeated attempts at logging in with an
-incorrect password.
+### run Module
+
+* python3 run.py
+
+### install and RUN Test
+
+* pip install pytest
+* py.test test_models.py -vv
+
+### run with docker 
+
+* docker-compose up
+* docker-compose build
+* docker-compose up --build

@@ -1,4 +1,5 @@
-FROM ubuntu:18.04
+# FROM ubuntu:18.04
+FROM python:3.4.5-slim
 
 WORKDIR ./code
 
