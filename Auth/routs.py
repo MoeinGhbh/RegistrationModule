@@ -25,9 +25,6 @@ def register_form():
     request_data = request.get_json()
     email = str(request_data["email"])
     password = str(request_data["password"])
-    # convert password to hash format
-    HP = HashPassword()
-    password = HP.hash_password(password)
     # class add user method
     newUser = AddUser(email, password,0,0,0)
     result = newUser.insert_user(MyConnection)

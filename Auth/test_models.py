@@ -1,33 +1,48 @@
-from Auth.models import CreateTable,AddUser,Connection
 import pytest
 import sqlite3
-from sqlite3 import Error
-from Auth.models import Connection
+from Auth.models import AddUser,UserUpdate,Authentication,CreateTable
 
-class TestClass:
-    email='aaatestaasdfaaaa@test.com'
-    password='gggggf234567890'
+@pytest.fixture()
+def db():
+    conn = sqlite3.connect(':memory:')
+    ct = CreateTable()
+    ct.create_table(conn)
+    return conn
 
-    @pytest.fixture(scope='function')
-    def sql_connection(self):
-        MyConnection= Connection()
-        MyConnection._path=':memory:'
-        return MyConnection
-        # CreateTable().create_table(MyConnection)
+def test_sqlite(db):
+    aptusr = AddUser('test@test.com','testpassword',0,0,0)
+    res = aptusr.insert_user(db)
+    assert res == True
 
-    def test_createTable(self,sql_connection):
-        print(sql_connection)
-        # print(sql_connection._p)
-        crttbl =  CreateTable()
-        assert crttbl.create_table(sql_connection) == True
+    a= Authentication('test@test.com','testpassword')
+    res = a.check_user_password(db)
+    assert res == 'Account is not active'
 
-    def test_add_user(self,sql_connection):
-        newUser = AddUser(TestClass.email, TestClass.password,0,0,0)
-        assert newUser.insert_user(sql_connection) == True
-   
-    # def test_user_update(self,sql_connection):
-    #     pass
+    upur = UserUpdate('active',1,1)
+    res = upur.user_update(db)
+    assert res == True
 
-    # def test_user_delete(self,sql_connection):
-    #     pass
+    a= Authentication('test@test.com','testpassword')
+    res = a.check_user_password(db)
+    assert res == True
+
+    a= Authentication('test@test.com','wrongpassword')
+    res = a.check_user_password(db)
+    assert res == 'Password is not correct!'
+    a= Authentication('test@test.com','wrongpassword')
+    res = a.check_user_password(db)
+    assert res == 'Password is not correct!'
+    a= Authentication('test@test.com','wrongpassword')
+    res = a.check_user_password(db)
+    assert res == 'Password is not correct!'
+
+    a= Authentication('test@test.com','wrongpassword')
+    res = a.check_user_password(db)
+    assert res == 'Account locked'
+
+    a= Authentication('test@test.com','wrongpassword')
+    res = a.check_user_password(db)
+    assert res == 'Account is Locked'
+
+
 
