@@ -1,0 +1,7 @@
+version: '3'
+services:
+  web:
+    build: .
+    volumes:
+      - .:/code:rw
+    command: python3 run.py 
