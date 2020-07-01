@@ -30,8 +30,3 @@ The account will be locked automatically for a certain period of time which defi
 * pip install pytest
 * py.test test_models.py -vv
 
-### run with docker 
-
-* docker-compose up
-* docker-compose build
-* docker-compose up --build
