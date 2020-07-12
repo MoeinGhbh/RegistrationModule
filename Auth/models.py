@@ -14,10 +14,11 @@ class Singleton(type):
             self._instance = super().__call__()
         return self._instance
 
-''' connection class make context manager for connecting to database and 
-    mangement of open / close and commit
-'''
+
 class Connection(metaclass=Singleton):
+    ''' connection class make context manager for connecting to database and 
+        mangement of open / close and commit
+    '''
     def __init__(self):
         self.con = None
         self.cursor = None
@@ -108,13 +109,14 @@ class SelectUser:
             except Error:
                 return Error
 
-'''
-update 3 diffrenct columns of database
-active: for makeing active user
-lock:   for lock user after pass threshold which set on config file
-incorrectpass: for counting wrong password
-'''
+
 class UserUpdate():
+    '''
+        update 3 diffrenct columns of database
+        active: for makeing active user
+        lock:   for lock user after pass threshold which set on config file
+        incorrectpass: for counting wrong password
+    '''
     def __init__(self,myConnection, column, id, value):
         self.myConnection=myConnection
         self.column = column
@@ -146,6 +148,16 @@ class UserDelete():
 
 
 class Authentication():
+    '''
+    this class with its methods implemented to 
+    check user and password and status of each account
+    status are consist of :
+        1- account is not exist
+        2- account is not active
+        3- account is active
+        4- account locked
+        5- account is locked
+    '''
     def __init__(self,myConnection, email, password):
         self.myConnection=myConnection
         self.email = email
