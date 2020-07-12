@@ -10,39 +10,40 @@ def db():
     return conn
 
 def test_sqlite(db):
-    aptusr = AddUser('test@test.com','testpassword',0,0,0)
-    res = aptusr.insert_user(db)
+    aptusr = AddUser(db,'test@test.com','testpassword',0,0,0)
+    res = aptusr.insert_user()
     assert res == True
 
-    a= Authentication('test@test.com','testpassword')
-    res = a.check_user_password(db)
+    a= Authentication(db,'test@test.com','testpassword')
+    res = a.authentication()
     assert res == 'Account is not active'
 
-    upur = UserUpdate('active',1,1)
-    res = upur.user_update(db)
+    upur = UserUpdate(db,'active',1,1)
+    res = upur.user_update()
     assert res == True
 
-    a= Authentication('test@test.com','testpassword')
-    res = a.check_user_password(db)
-    assert res == True
+    a= Authentication(db,'test@test.com','testpassword')
+    res = a.authentication()
+    assert res == 'Account is active'
 
-    a= Authentication('test@test.com','wrongpassword')
-    res = a.check_user_password(db)
+    a= Authentication(db,'test@test.com','wrongpassword')
+    res = a.authentication()
     assert res == 'Password is not correct!'
-    a= Authentication('test@test.com','wrongpassword')
-    res = a.check_user_password(db)
+    a= Authentication(db,'test@test.com','wrongpassword')
+    res = a.authentication()
     assert res == 'Password is not correct!'
-    a= Authentication('test@test.com','wrongpassword')
-    res = a.check_user_password(db)
+    a= Authentication(db,'test@test.com','wrongpassword')
+    res = a.authentication()
     assert res == 'Password is not correct!'
 
-    a= Authentication('test@test.com','wrongpassword')
-    res = a.check_user_password(db)
+    a= Authentication(db,'test@test.com','wrongpassword')
+    res = a.authentication()
     assert res == 'Account locked'
 
-    a= Authentication('test@test.com','wrongpassword')
-    res = a.check_user_password(db)
+    a= Authentication(db,'test@test.com','wrongpassword')
+    res = a.authentication()
     assert res == 'Account is Locked'
+
 
 
 

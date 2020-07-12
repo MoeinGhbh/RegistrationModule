@@ -70,17 +70,18 @@ class CreateTable:
 
 # insert user with none active setuation
 class AddUser():
-    def __init__(self, email, password, active, lock, incorrectPass):
+    def __init__(self,myConnection, email, password, active, lock, incorrectPass):
+        self.myConnection=myConnection
         self.email = email
         self.password = password
         self.active = active
         self.lock = lock
         self.incorrectPass = incorrectPass
 
-    def insert_user(self, myConnection):
+    def insert_user(self):
         HP = HashPassword()
         self.password = HP.hash_password(self.password)
-        with myConnection as cursor:
+        with self.myConnection as cursor:
             # Insert a row of data
             try:
                 cursor.execute(f' INSERT INTO users ' +
@@ -94,11 +95,12 @@ class AddUser():
 
 # select class for retreving user from database
 class SelectUser:
-    def __init__(self, emial):
+    def __init__(self,myConnection, emial):
+        self.myConnection=myConnection
         self.email = emial
 
-    def select_user(self, myConnection):
-        with myConnection as cursor:
+    def select_user(self):
+        with self.myConnection as cursor:
             try:
                 rows = cursor.execute(f' select id,email,password,active,lock,incorrectPass from users where email=?',
                                (self.email,))
@@ -113,13 +115,14 @@ lock:   for lock user after pass threshold which set on config file
 incorrectpass: for counting wrong password
 '''
 class UserUpdate():
-    def __init__(self, column, id, value):
+    def __init__(self,myConnection, column, id, value):
+        self.myConnection=myConnection
         self.column = column
         self.id = id
         self.value = value
 
-    def user_update(self, myConnection):
-        with myConnection as cursor:
+    def user_update(self):
+        with self.myConnection as cursor:
             try:
                 cursor.execute(f' update users set {self.column} = ? where id = ? ', (self.value, self.id,))
                 return True
@@ -128,11 +131,13 @@ class UserUpdate():
 
 # delete user
 class UserDelete():
-    def __init__(self, emial):
+    def __init__(self,myConnection, emial):
+        self.myConnection=myConnection
         self.email = emial
 
-    def select_user(self, myConnection):
-        with myConnection as cursor:
+
+    def select_user(self):
+        with self.myConnection as cursor:
             try:
                 cursor.execute(f' delete from users where email=?', (self.email,))
                 return True
@@ -141,52 +146,82 @@ class UserDelete():
 
 
 class Authentication():
-    # use this class to hash password
-    hp = HashPassword()
-
-    def __init__(self, email, password):
+    def __init__(self,myConnection, email, password):
+        self.myConnection=myConnection
         self.email = email
         self.password = password
+        self.rows=None
+        self.status=None
 
-    def check_user_password(self, myConnection):
-        su = SelectUser(self.email)
-        rows = su.select_user(myConnection)
-        print(rows)
-        if len(rows) > 0:
-            id = rows[0][0]
-            password = rows[0][2]
-            isactive = int(rows[0][3])
-            islock = int(rows[0][4])
-            incorrectPass = int(rows[0][5])
+        self.id=None
+        self.isactive=None
+        self.islock=None
+        self.incorrectPass=None
 
-            # class hash function for compare password with password in databse
-            if Authentication.hp.verify_password(password, self.password):
-
-                if isactive == 0:
-                    return 'Account is not active'
-                elif isactive == 1 and islock == 1:
-                    return 'Account is Locked'
-                elif isactive == 1 and islock == 0:
-                    if incorrectPass > 0:
-                        # set incorrect value to zero
-                        uuip = UserUpdate('incorrectPass', id, 0)
-                        uuip.user_update(myConnection)
-                    return True
+    
+    def authentication(self):
+        self.__check_user()
+        if self.rows is not None:
+            self.id = self.rows[0][0]
+            self.isactive = int(self.rows[0][3])
+            self.islock = int(self.rows[0][4])
+            self.incorrectPass = int(self.rows[0][5])
+            res = self.__check_password()
+            if res:
+                self.__ckeck_status()
             else:
-                if islock == 1:
-                    return 'Account is Locked'
-                else:
-                    incorrectPass += 1
-                    # read threshold value from config
-                    loginـthreshold = config.Errorـthreshold['time']
-                    if incorrectPass > loginـthreshold:
-                        lock_account = UserUpdate('lock', id, 1)
-                        lock_account.user_update(myConnection)
-                        return 'Account locked'
-                    else:
-                        uuip = UserUpdate('incorrectPass', id, incorrectPass)
-                        uuip.user_update(myConnection)
-                        return 'Password is not correct!'
+                self.__password_incorrect()
+        return self.status
+    
+
+    def __check_user(self):
+        su = SelectUser(self.myConnection,self.email)
+        rows = su.select_user()
+        if len(rows)>0:
+            self.rows=rows
         else:
-            return 'Account is not exist'
+            self.status= 'Account is not exist'
+
+    def __check_password(self):
+            password = self.rows[0][2]
+            # use this class to hash password            
+            hp = HashPassword()
+            # class hash function for compare password with password in databse
+            if hp.verify_password(password, self.password):
+                return True
+            else:
+                return False
+            
+    def __set_field_value(self,field,id,value):
+         # set incorrect value by value
+        uuip = UserUpdate(self.myConnection,field, id, value)
+        uuip.user_update()
+
+
+    def __ckeck_status(self):
+        if self.isactive == 0:
+            self.status= 'Account is not active'
+        elif self.isactive == 1 and self.islock == 1:
+            self.status= 'Account is Locked'
+        elif self.isactive == 1 and self.islock == 0:
+            if self.incorrectPass > 0:
+                # set incorrect value to zero
+                self.__set_field_value('incorrectPass',self.id,0)
+            self.status= 'Account is active'
+        
+    def __password_incorrect(self):
+            if self.islock == 1:
+                    self.status= 'Account is Locked'
+            else:
+                self.incorrectPass += 1
+                # read threshold value from config
+                loginـthreshold = config.Errorـthreshold['time']
+                if self.incorrectPass > loginـthreshold:
+                    self.__set_field_value('lock', self.id, 1)
+                    self.status= 'Account locked'
+                else:
+                    self.__set_field_value('incorrectPass',self.id, self.incorrectPass)
+                    self.status= 'Password is not correct!'
+
+            
 

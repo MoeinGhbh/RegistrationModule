@@ -21,8 +21,8 @@ def register_form():
     email = str(request_data["email"])
     password = str(request_data["password"])
     # class add user method
-    newUser = AddUser(email, password,0,0,0)
-    result = newUser.insert_user(MyConnection)
+    newUser = AddUser(MyConnection,email, password,0,0,0)
+    result = newUser.insert_user()
     print(result)
     # if registration is successfull then send a activate e-mial
     if result:
@@ -49,8 +49,8 @@ def get_token():
     request_data = request.get_json()
     email = str(request_data["email"])
     password = str(request_data["password"])
-    auth = Authentication(email, password)
-    result = auth.check_user_password(MyConnection)
+    Auth = Authentication(MyConnection,email, password)
+    result = Auth.authentication()
     print(result)
     if result == True:
         expiration_date = datetime.datetime.utcnow() + datetime.timedelta(seconds=300)
@@ -64,8 +64,8 @@ def get_token():
 def active_user():
     request_data = request.get_json()
     id = str(request_data["id"])
-    up = UserUpdate('active',id,1)
-    result = up.user_update(MyConnection)
+    up = UserUpdate(MyConnection,'active',id,1)
+    result = up.user_update()
     if result:
         return 'user successfully active'
     else:
